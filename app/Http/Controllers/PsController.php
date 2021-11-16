@@ -124,6 +124,7 @@ class PsController extends Controller
         DB::table('buying_orders')->where('id', $request->id)->update($data);
         return redirect('index');
     }
+
     /**
      * 依頼者が商品を受け取った旨を通知するビューを表示する
      *
@@ -133,6 +134,7 @@ class PsController extends Controller
     {
         return view('receive');
     }
+
     /**
      * 依頼者が商品を受け取った旨をメール通知し、データベースの受取完or未完を完にするメソッド
      *

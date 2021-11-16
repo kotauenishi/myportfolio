@@ -45,10 +45,21 @@ class User extends Authenticatable
 
     protected $guarded = array('id');
 
+    /**
+     * Userテーブル1：Buying_orderテーブル多のhasMany結合を行うメソッド
+     *
+     * @return void
+     */
     public function buying_order()
     {
         return $this->hasMany('App\Model\Buying_order');
     }
+
+    /**
+     * ユーザーデータの取得メソッド
+     *
+     * @return void
+     */
     public function getData()
     {
         return $this->name;

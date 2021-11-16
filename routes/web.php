@@ -30,4 +30,3 @@ Route::post('purchase', [PsController::class,'purchase'])->name('purchase');
 Route::post('shipping', [PsController::class,'shipping'])->name('shipping');
 Route::post('receive', [PsController::class,'receive'])->name('receive');
 
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
