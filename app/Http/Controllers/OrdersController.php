@@ -8,6 +8,7 @@ use App\Http\Requests\OrderRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Service\OrderService;
 
 /**
  * リソースコントローラー
@@ -28,7 +29,7 @@ class OrdersController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(Request $request, OrderService $orderService)
     {
         $buying_orders = DB::table('buying_orders');
 
@@ -42,74 +43,10 @@ class OrdersController extends Controller
         $start_date = $request->start_date; #検索開始日
         $end_date = $request->end_date; #検索終了日
 
-        // 管理者権限の有無で表示内容を条件分岐
-        if (!empty(Auth::user()->admin)) {
-            // 検索開始日と検索終了日、検索キーワードがある時の条件分岐
-            if (!empty($keyword) && !empty($start_date) && !empty($end_date)) {
-                $orders = DB::table('buying_orders')->select('buying_orders.id as id', 'name', 'title', 'order_date')
-                    ->join('users', 'buying_orders.user_id', '=', 'users.id')
-                    ->where('buying_orders.user_id', Auth::user()->id)->orWhere('title', 'like', '%' . $keyword . '%')
-                    ->orWhere('name', 'like', '%' . $keyword . '%')->orWhere('name', 'like', '%' . $keyword . '%')
-                    ->orWhere('buying_orders.id', 'like', '%' . $keyword . '%')->whereBetween('order_date', [$start_date, $end_date])
-                    ->simplePaginate(5);
-                return view('index', ['orders' => $orders, 'seller_datas' => $seller_datas, 'buyer_datas' => $buyer_datas]);
-                exit;
-            }
-            // 検索開始日と検索終了日がある時の条件分岐
-            if (!empty($start_date) && !empty($end_date)) {
-                $orders = DB::table('buying_orders')->select('buying_orders.id as id', 'name', 'title', 'order_date')
-                    ->join('users', 'buying_orders.user_id', '=', 'users.id')
-                    ->whereBetween('order_date', [$start_date, $end_date])
-                    ->simplePaginate(5);
-                return view('index', ['orders' => $orders, 'seller_datas' => $seller_datas, 'buyer_datas' => $buyer_datas]);
-                exit;
-            }
 
-            // 検索キーワードがある時の条件分岐
-            if (!empty($keyword)) {
-                $orders = DB::table('buying_orders')
-                    ->select('buying_orders.id as id', 'name', 'title', 'order_date')
-                    ->join('users', 'buying_orders.user_id', '=', 'users.id')
-                    ->where('buying_orders.user_id', Auth::user()->id)->orWhere('title', 'like', '%' . $keyword . '%')
-                    ->orWhere('name', 'like', '%' . $keyword . '%')->orWhere('name', 'like', '%' . $keyword . '%')
-                    ->orWhere('buying_orders.id', 'like', '%' . $keyword . '%')->simplePaginate(5);
-                return view('index', ['orders' => $orders, 'seller_datas' => $seller_datas, 'buyer_datas' => $buyer_datas]);
-                exit;
-            } else {
-                $orders = DB::table('buying_orders')->select('buying_orders.id as id', 'name', 'title', 'order_date')
-                    ->join('users', 'buying_orders.user_id', '=', 'users.id')
-                    ->simplePaginate(5);
-                return view('index', ['orders' => $orders, 'seller_datas' => $seller_datas, 'buyer_datas' => $buyer_datas]);
-                exit;
-            }
-        } else {
-            if (!empty($start_date) && !empty($end_date)) {
-                $orders = DB::table('buying_orders')->select('buying_orders.id as id', 'name', 'title', 'order_date')
-                    ->join('users', 'buying_orders.user_id', '=', 'users.id')
-                    ->where('buying_orders.user_id', Auth::user()->id)->whereBetween('order_date', [$start_date, $end_date])
-                    ->simplePaginate(5);
-                return view('index', ['orders' => $orders, 'seller_datas' => $seller_datas, 'buyer_datas' => $buyer_datas]);
-                exit;
-            }
+        $orders = $orderService->reserch($keyword,$start_date,$end_date);
 
-            // 検索キーワードがある時の条件分岐
-            if (!empty($keyword)) {
-                $orders = DB::table('buying_orders')
-                    ->select('buying_orders.id as id', 'name', 'title', 'order_date')
-                    ->join('users', 'buying_orders.user_id', '=', 'users.id')
-                    ->where('title', 'like', '%' . $keyword . '%')->orWhere('user_id', 'like', '%' . $keyword . '%')->orWhere('name', 'like', '%' . $keyword . '%')
-                    ->orWhere('buying_orders.id', 'like', '%' . $keyword . '%')->simplePaginate(5);
-                return view('index', ['orders' => $orders, 'seller_datas' => $seller_datas, 'buyer_datas' => $buyer_datas]);
-                exit;
-            } else {
-                $orders = DB::table('buying_orders')
-                    ->select('buying_orders.id as id', 'name', 'title', 'order_date')
-                    ->join('users', 'buying_orders.user_id', '=', 'users.id')
-                    ->where('buying_orders.user_id', Auth::user()->id)->simplePaginate(5);
-                return view('index', ['orders' => $orders, 'seller_datas' => $seller_datas, 'buyer_datas' => $buyer_datas]);
-                exit;
-            }
-        }
+        return view('index', ['orders' => $orders, 'seller_datas' => $seller_datas, 'buyer_datas' => $buyer_datas]);
     }
 
     /**
